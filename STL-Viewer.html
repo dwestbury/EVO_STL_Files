@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printable STL Viewer</title>
+    <style>
+        /* Previous styles remain unchanged */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .tile {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .viewer-container {
+            width: 100%;
+            height: 300px;
+            background-color: #1a1a1a;
+            position: relative;
+            overflow: hidden;  // Add this
+        }
+        
+        .viewer {
+            width: 100%;
+            height: 100%;
+            position: absolute;  // Add this
+            left: 0;            // Add this
+            top: 0;             // Add this
+        }
+        .tile-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .tile h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.4em;
+            color: #333;
+        }
+        .tile .description {
+            color: #666;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        .tile .metadata {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        .tile .credits {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+        .viewer-instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8em;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>3D Printable STL Viewer</h1>
+        <div id="stl-grid" class="grid">
+            <!-- STL tiles will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        const stlFiles = [
+            {
+                name: "Model 1",
+                description: "A versatile model perfect for testing printer calibration and as a basic building block for more complex designs.",
+                credits: "Created by John Doe",
+                useCase: "Calibration, Educational purposes, Basic construction",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 2",
+                description: "A perfectly smooth model with optimized geometry for 3D printing. Great for testing your printer's ability to handle curved surfaces.",
+                credits: "Designed by Jane Smith",
+                useCase: "Printer testing, Decorative purposes",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 3",
+                description: "A precise model with a solid base. Excellent for testing layer adhesion and exploring architectural designs.",
+                credits: "Contributed by Alex Johnson",
+                useCase: "Educational models, Architectural studies",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 4",
+                description: "An elegant design showcasing smooth transitions and complex geometries. Perfect for testing printer precision.",
+                credits: "Created by Sarah Chen",
+                useCase: "Advanced printing, Display pieces",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 5",
+                description: "A detailed model demonstrating intricate patterns and surface textures. Ideal for testing fine detail reproduction.",
+                credits: "Designed by Mike Wilson",
+                useCase: "Detail testing, Artistic prints",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 6",
+                description: "A robust design featuring both curved and angular elements. Great for testing various printer capabilities.",
+                credits: "Created by Lisa Rodriguez",
+                useCase: "Printer calibration, Mixed geometry testing",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 7",
+                description: "A sophisticated model combining multiple geometric elements. Perfect for comprehensive printer testing.",
+                credits: "Developed by Tom Baker",
+                useCase: "Advanced testing, Educational demonstrations",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 8",
+                description: "An innovative design pushing the boundaries of 3D printing capabilities. Excellent for testing printer limits.",
+                credits: "Created by Emma Davis",
+                useCase: "Performance testing, Technical demonstrations",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            },
+            {
+                name: "Model 9",
+                description: "A versatile model incorporating various printing challenges. Ideal for comprehensive printer evaluation.",
+                credits: "Designed by David Kim",
+                useCase: "Comprehensive testing, Technical evaluation",
+                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+            }
+        ];
+
+        function createTile(stl) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.innerHTML = `
+                <div class="viewer-container">
+                    <div class="viewer" id="viewer-${stl.name.toLowerCase()}"></div>
+                    <div class="viewer-instructions">Click and drag to rotate • Scroll to zoom</div>
+                </div>
+                <div class="tile-content">
+                    <h2>${stl.name}</h2>
+                    <div class="description">${stl.description}</div>
+                    <div class="metadata">
+                        <strong>Use Case:</strong> ${stl.useCase}
+                    </div>
+                    <div class="credits">${stl.credits}</div>
+                    <button class="download-btn" onclick="window.location.href='${stl.url}'">
+                        Download STL
+                    </button>
+                </div>
+            `;
+            return tile;
+        }
+
+        function initViewer(containerId, stlUrl) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Clear container and ensure it's isolated
+            container.innerHTML = '';
+            container.style.position = 'relative';
+            container.style.overflow = 'hidden'; // Ensure content stays within bounds
+            
+            // Create a wrapper div to isolate the 3D context
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'absolute';
+            wrapper.style.width = '100%';
+            wrapper.style.height = '100%';
+            wrapper.style.left = '0';
+            wrapper.style.top = '0';
+            container.appendChild(wrapper);
+            
+            // Get dimensions from wrapper
+            const width = wrapper.clientWidth;
+            const height = wrapper.clientHeight;
+            
+            // Create isolated scene
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            // Create isolated camera
+            const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            
+            // Create isolated renderer
+            const renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: true 
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.domElement.style.position = 'absolute';
+            renderer.domElement.style.left = '0';
+            renderer.domElement.style.top = '0';
+            wrapper.appendChild(renderer.domElement);
+            
+            // Isolated lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight1.position.set(1, 1, 1);
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight2.position.set(-1, -1, -1);
+            scene.add(directionalLight2);
+            
+            // Isolated controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = true;
+            
+            // Load STL with isolated transformation
+            const loader = new THREE.STLLoader();
+            loader.load(stlUrl, function (geometry) {
+                geometry.computeBoundingBox();
+                const boundingBox = geometry.boundingBox;
+                const center = new THREE.Vector3();
+                boundingBox.getCenter(center);
+                
+                // Create isolated material and mesh
+                const material = new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    specular: 0x111111,
+                    shininess: 100
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                // Create isolated group
+                const group = new THREE.Group();
+                scene.add(group);
+                group.add(mesh);
+                
+                // Center geometry in local space
+                geometry.translate(-center.x, -center.y, -center.z);
+                
+                // Scale in local space
+                const size = new THREE.Vector3();
+                boundingBox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2.0 / maxDim;
+                group.scale.set(scale, scale, scale);
+                
+                // Position in local space
+                group.position.set(0, 0, 0);
+                group.rotation.set(-Math.PI / 6, Math.PI / 4, 0);
+                
+                // Position camera in local space
+                const cameraDistance = 4;
+                camera.position.set(
+                    cameraDistance * Math.sqrt(1/3),
+                    cameraDistance * Math.sqrt(1/3),
+                    cameraDistance * Math.sqrt(1/3)
+                );
+                camera.lookAt(0, 0, 0);
+                camera.updateProjectionMatrix();
+                
+                // Set up controls in local space
+                controls.target.set(0, 0, 0);
+                controls.minDistance = cameraDistance / 2;
+                controls.maxDistance = cameraDistance * 2;
+                controls.update();
+                
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 2.0;
+                wrapper.addEventListener('mousedown', () => {
+                    controls.autoRotate = false;
+                });
+            });
+            
+            // Add instructions to wrapper
+            const instructions = document.createElement('div');
+            instructions.className = 'viewer-instructions';
+            instructions.textContent = 'Click and drag to rotate • Scroll to zoom';
+            wrapper.appendChild(instructions);
+            
+            // Isolated resize handler
+            function onWindowResize() {
+                const newWidth = wrapper.clientWidth;
+                const newHeight = wrapper.clientHeight;
+                
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(newWidth, newHeight);
+            }
+            
+            const resizeObserver = new ResizeObserver(onWindowResize);
+            resizeObserver.observe(wrapper);
+            
+            // Isolated animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('stl-grid');
+            stlFiles.forEach(stl => {
+                const tile = createTile(stl);
+                grid.appendChild(tile);
+                initViewer(`viewer-${stl.name.toLowerCase()}`, stl.url);
+            });
+        });
+    </script>
+</body>
+</html>
+
