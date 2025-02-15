@@ -114,7 +114,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>3D Printable STL Viewer</h1>
+        <h1>3D Printable STL Files for your EVO64</h1>
         <div id="stl-grid" class="grid">
             <!-- STL tiles will be dynamically inserted here -->
         </div>
@@ -127,67 +127,67 @@
     <script>
         const stlFiles = [
             {
-                name: "Model 1",
-                description: "A versatile model perfect for testing printer calibration and as a basic building block for more complex designs.",
-                credits: "Created by John Doe",
-                useCase: "Calibration, Educational purposes, Basic construction",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                name: "EVO Cartridge Port Cover",
+                description: "A cool and classy cover for the cartridge port on your EVO64.",
+                credits: "Created by Sedor: https://www.thingiverse.com/sedor/designs",
+                useCase: "Prevents dust from getting into the cartridge port, looks snazzy",
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20Cart%20Shield%20Cover%20(Sedor)/CartridgePortCover_EVO_V2.2_Screw.stl"
+            },
+            {
+                name: "Plexilaser Keyboard Mount",
+                description: "Fits your Plexilaser case perfectly, with just the right height and clearance for your EVO64.",
+                credits: "Contributed by Sedor: https://www.thingiverse.com/sedor/designs",
+                useCase: "Replace stripped or broken mounts, change colors, etc.",
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20Keyboard%20Mounts%20-%20Plexilaser%20(Sedor)/Tastaturstuetze_Plexilaser.stl"
+            },
+            {
+                name: "Plexilaser Top Lid Mount",
+                description: "Securely screw down the top lid on your plexilaser case.",
+                credits: "Contributed by Sedor: https://www.thingiverse.com/sedor/designs",
+                useCase: "Replace stripped or broken mounts, change colors, etc.",
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20Keyboard%20Mounts%20-%20Plexilaser%20(Sedor)/Plexilaser_Frontkeil_V1.0.stl"
             },
             {
                 name: "Model 2",
                 description: "A perfectly smooth model with optimized geometry for 3D printing. Great for testing your printer's ability to handle curved surfaces.",
                 credits: "Designed by Jane Smith",
                 useCase: "Printer testing, Decorative purposes",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
-            },
-            {
-                name: "Model 3",
-                description: "A precise model with a solid base. Excellent for testing layer adhesion and exploring architectural designs.",
-                credits: "Contributed by Alex Johnson",
-                useCase: "Educational models, Architectural studies",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
-            },
-            {
-                name: "Model 4",
-                description: "An elegant design showcasing smooth transitions and complex geometries. Perfect for testing printer precision.",
-                credits: "Created by Sarah Chen",
-                useCase: "Advanced printing, Display pieces",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20Keyboard%20Mounts%20-%20Wedge%20case%20(Jaystonian)/tastaturhalter_EVO64_JRW.stl"
             },
             {
                 name: "Model 5",
                 description: "A detailed model demonstrating intricate patterns and surface textures. Ideal for testing fine detail reproduction.",
                 credits: "Designed by Mike Wilson",
                 useCase: "Detail testing, Artistic prints",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20MSM%20LCD%20Mount%20-%20External%20Rounded%20-%2020x4/LCD_front_case.stl"
             },
             {
                 name: "Model 6",
                 description: "A robust design featuring both curved and angular elements. Great for testing various printer capabilities.",
                 credits: "Created by Lisa Rodriguez",
                 useCase: "Printer calibration, Mixed geometry testing",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20MSM%20LCD%20Mount%20-%20External%20Rounded%20-%2020x4/LCD_back_case.stl"
             },
             {
                 name: "Model 7",
                 description: "A sophisticated model combining multiple geometric elements. Perfect for comprehensive printer testing.",
                 credits: "Developed by Tom Baker",
                 useCase: "Advanced testing, Educational demonstrations",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20MSM%20LCD%20Mount%20-%20Plexilaser%20Case%20-%2020x4%20(Sedor)/MSM_Display_Mount_V1.3.stl"
             },
             {
                 name: "Model 8",
                 description: "An innovative design pushing the boundaries of 3D printing capabilities. Excellent for testing printer limits.",
                 credits: "Created by Emma Davis",
                 useCase: "Performance testing, Technical demonstrations",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20MSM%20LCD%20Mount%20-%20Plexilaser%20Case%20-%2020x4%20(Sedor)/MSM_Display_Lid_V1.1.stl"
             },
             {
                 name: "Model 9",
                 description: "A versatile model incorporating various printing challenges. Ideal for comprehensive printer evaluation.",
                 credits: "Designed by David Kim",
                 useCase: "Comprehensive testing, Technical evaluation",
-                url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/stl/ascii/slotted_disk.stl"
+                url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/EVO%20MSM%20LCD%20Mount%20-%20RF%20Fuzion%20Breadbin%20-%2040x2%20(CryzleR)/2x40%20LCD-Mount%204%20MSM.stl"
             }
         ];
 
