@@ -254,27 +254,58 @@
         // Track active viewers to limit WebGL contexts
         const activeViewers = new Set();
         const MAX_ACTIVE_VIEWERS = 8; // Limit to prevent WebGL context exhaustion
+        let globalObserver = null; // Store the observer globally for re-use
+        
+        function cleanupOffscreenViewers() {
+            const rows = [];
+            const tolerance = 2; // px
+
+            // Group tiles by row using a tolerance
+            activeViewers.forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    const rect = container.getBoundingClientRect();
+                    // Try to find an existing row within tolerance
+                    let row = rows.find(r => Math.abs(r.top - rect.top) < tolerance);
+                    if (!row) {
+                        row = { top: rect.top, tiles: [] };
+                        rows.push(row);
+                    }
+                    row.tiles.push({ containerId, rect });
+                }
+            });
+
+            // For each row, check if all tiles are offscreen
+            rows.forEach(row => {
+                const allAbove = row.tiles.every(t => t.rect.bottom <= 0);
+                const allBelow = row.tiles.every(t => t.rect.top >= window.innerHeight);
+                if (allAbove || allBelow) {
+                    row.tiles.forEach(t => cleanupViewer(t.containerId));
+                }
+            });
+        }
         
         function cleanupViewer(containerId) {
             const container = document.getElementById(containerId);
             if (container) {
                 container.innerHTML = '';
                 const stlUrl = container.getAttribute('data-stl-url');
-                // Add a "Load 3D View" button instead
+                // Add a subtle loading placeholder
                 container.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #1a1a1a; color: white; cursor: pointer;" onclick="reloadViewer('${containerId}', '${stlUrl}')">
+                    <div class="auto-load-placeholder" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #1a1a1a; color: rgba(255,255,255,0.6);">
                         <div style="text-align: center;">
-                            <div style="font-size: 18px; margin-bottom: 10px;">🔄</div>
-                            <div>Click to Load 3D View</div>
+                            <div style="font-size: 16px; margin-bottom: 8px;">⏳</div>
+                            <div style="font-size: 12px;">Scroll to auto-load</div>
                         </div>
                     </div>
                 `;
+                
+                // Re-observe this container for automatic reloading
+                if (globalObserver) {
+                    globalObserver.observe(container);
+                }
             }
             activeViewers.delete(containerId);
-        }
-        
-        function reloadViewer(containerId, stlUrl) {
-            initViewer(containerId, stlUrl);
         }
 
         function createTile(stl) {
@@ -467,32 +498,47 @@
                 grid.appendChild(tile);
             });
             
-            // Use intersection observer for lazy loading
-            const observer = new IntersectionObserver((entries) => {
+            // Simple intersection observer for loading visible tiles
+            globalObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
+                    const container = entry.target;
+                    const containerId = container.id;
+                    const stlUrl = container.getAttribute('data-stl-url');
+                    
                     if (entry.isIntersecting) {
-                        const container = entry.target;
-                        const containerId = container.id;
-                        const stlUrl = container.getAttribute('data-stl-url');
-                        
-                        // Only initialize if not already active
+                        // Tile is visible - load it if not already active
                         if (!activeViewers.has(containerId)) {
-                            initViewer(containerId, stlUrl);
+                            const isCleanedUp = container.querySelector('.auto-load-placeholder');
+                            
+                            if (isCleanedUp) {
+                                // Small delay for cleaned up viewers
+                                setTimeout(() => {
+                                    if (entry.isIntersecting) {
+                                        initViewer(containerId, stlUrl);
+                                    }
+                                }, 100);
+                            } else {
+                                initViewer(containerId, stlUrl);
+                            }
                         }
-                        
-                        // Stop observing this element
-                        observer.unobserve(container);
                     }
                 });
             }, {
-                threshold: 0.1, // Trigger when 10% visible
-                rootMargin: '50px' // Start loading 50px before it becomes visible
+                threshold: 0.1 // Trigger when 10% of tile is visible
+                // No rootMargin - only load when actually visible
             });
             
             // Observe all viewer containers
             document.querySelectorAll('.viewer').forEach(viewer => {
-                observer.observe(viewer);
+                globalObserver.observe(viewer);
             });
+            
+            // Throttle scroll event for performance
+            let cleanupTimeout;
+            window.addEventListener('scroll', () => {
+                if (cleanupTimeout) clearTimeout(cleanupTimeout);
+                cleanupTimeout = setTimeout(cleanupOffscreenViewers, 50);
+            }, { passive: true });
         });
     </script>
 </body>
