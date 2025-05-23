@@ -247,12 +247,17 @@
             },
         ];
 
+        function sanitizeId(name) {
+            return name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        }
+
         function createTile(stl) {
             const tile = document.createElement('div');
             tile.className = 'tile';
+            const viewerId = `viewer-${sanitizeId(stl.name)}`;
             tile.innerHTML = `
                 <div class="viewer-container">
-                    <div class="viewer" id="viewer-${stl.name.toLowerCase()}"></div>
+                    <div class="viewer" id="${viewerId}"></div>
                     <div class="viewer-instructions">Click and drag to rotate • Scroll to zoom</div>
                 </div>
                 <div class="tile-content">
@@ -422,7 +427,8 @@
             stlFiles.forEach(stl => {
                 const tile = createTile(stl);
                 grid.appendChild(tile);
-                initViewer(`viewer-${stl.name.toLowerCase()}`, stl.url);
+                const viewerId = `viewer-${sanitizeId(stl.name)}`;
+                initViewer(viewerId, stl.url);
             });
         });
     </script>
