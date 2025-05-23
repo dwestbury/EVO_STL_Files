@@ -244,11 +244,37 @@
                 credits: "Designed by Retrosarge: https://www.printables.com/model/1240350-mini-hdmi-panel-mount/files",
                 useCase: "Clean and organized cable routing",
                 url: "https://raw.githubusercontent.com/dwestbury/EVO_STL_Files/main/Mini-HDMI-for-Kawari-in-Plexilaser/minihdmi3.stl"
-            },
+            }
         ];
 
         function sanitizeId(name) {
             return name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        }
+
+        // Track active viewers to limit WebGL contexts
+        const activeViewers = new Set();
+        const MAX_ACTIVE_VIEWERS = 8; // Limit to prevent WebGL context exhaustion
+        
+        function cleanupViewer(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = '';
+                const stlUrl = container.getAttribute('data-stl-url');
+                // Add a "Load 3D View" button instead
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #1a1a1a; color: white; cursor: pointer;" onclick="reloadViewer('${containerId}', '${stlUrl}')">
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; margin-bottom: 10px;">🔄</div>
+                            <div>Click to Load 3D View</div>
+                        </div>
+                    </div>
+                `;
+            }
+            activeViewers.delete(containerId);
+        }
+        
+        function reloadViewer(containerId, stlUrl) {
+            initViewer(containerId, stlUrl);
         }
 
         function createTile(stl) {
@@ -257,8 +283,9 @@
             const viewerId = `viewer-${sanitizeId(stl.name)}`;
             tile.innerHTML = `
                 <div class="viewer-container">
-                    <div class="viewer" id="${viewerId}"></div>
+                    <div class="viewer" id="${viewerId}" data-stl-url="${stl.url}"></div>
                     <div class="viewer-instructions">Click and drag to rotate • Scroll to zoom</div>
+                    <div class="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 14px; display: none;">Loading 3D model...</div>
                 </div>
                 <div class="tile-content">
                     <h2>${stl.name}</h2>
@@ -278,6 +305,15 @@
         function initViewer(containerId, stlUrl) {
             const container = document.getElementById(containerId);
             if (!container) return;
+            
+            // Check if we've exceeded the viewer limit
+            if (activeViewers.size >= MAX_ACTIVE_VIEWERS) {
+                // Clean up oldest viewers first
+                const oldestViewer = activeViewers.values().next().value;
+                cleanupViewer(oldestViewer);
+            }
+            
+            activeViewers.add(containerId);
 
             // Clear container and ensure it's isolated
             container.innerHTML = '';
@@ -424,12 +460,38 @@
         // Wait for DOM to be ready
         document.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('stl-grid');
-            stlFiles.forEach((stl, index) => {
+            
+            // Create all tiles first
+            stlFiles.forEach(stl => {
                 const tile = createTile(stl);
                 grid.appendChild(tile);
-                const viewerId = `viewer-${sanitizeId(stl.name)}`;
-                console.log(`Initializing viewer ${index}: ${stl.name} -> ${viewerId}`);
-                initViewer(viewerId, stl.url);
+            });
+            
+            // Use intersection observer for lazy loading
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const container = entry.target;
+                        const containerId = container.id;
+                        const stlUrl = container.getAttribute('data-stl-url');
+                        
+                        // Only initialize if not already active
+                        if (!activeViewers.has(containerId)) {
+                            initViewer(containerId, stlUrl);
+                        }
+                        
+                        // Stop observing this element
+                        observer.unobserve(container);
+                    }
+                });
+            }, {
+                threshold: 0.1, // Trigger when 10% visible
+                rootMargin: '50px' // Start loading 50px before it becomes visible
+            });
+            
+            // Observe all viewer containers
+            document.querySelectorAll('.viewer').forEach(viewer => {
+                observer.observe(viewer);
             });
         });
     </script>
